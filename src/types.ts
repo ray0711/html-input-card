@@ -11,8 +11,7 @@ declare global {
 export interface BoilerplateCardConfig extends LovelaceCardConfig {
   type: string;
   name?: string;
-  show_warning?: boolean;
-  show_error?: boolean;
+  show_seconds?: boolean;
   test_gui?: boolean;
   entity?: string;
   tap_action?: ActionConfig;

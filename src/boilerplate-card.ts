@@ -61,7 +61,7 @@ export class BoilerplateCard extends LitElement {
     }
 
     this.config = {
-      name: 'Boilerplate',
+      name: config.entity,
       ...config,
     };
   }
@@ -78,7 +78,7 @@ export class BoilerplateCard extends LitElement {
   // https://lit.dev/docs/components/rendering/
   protected render(): TemplateResult | void {
     // TODO Check for stateObj or other necessary things and render a warning if missing
-    if (this.config.show_warning) {
+    if (!this.config.entity) {
       return this._showWarning(localize('common.show_warning'));
     }
 
@@ -86,18 +86,33 @@ export class BoilerplateCard extends LitElement {
       return this._showError(localize('common.show_error'));
     }
 
+    const stateObj = this.hass.states[this.config.entity];
+    const stateStrFull = stateObj ? stateObj.state : '';
+    const stateSplit = stateStrFull.split(":");
+    const stateStrHHMM = `${stateSplit[0]}:${stateSplit[1]}`;
+    const stateDisplay = this.config.show_seconds ? stateStrFull : stateStrHHMM;
+    const step = this.config.show_seconds ? 1 : 60;
+
+    // alert(this.config.show_seconds);
+    // alert(stateDisplay);
     return html`
-      <ha-card
-        .header=${this.config.name}
-        @action=${this._handleAction}
-        .actionHandler=${actionHandler({
-          hasHold: hasAction(this.config.hold_action),
-          hasDoubleClick: hasAction(this.config.double_tap_action),
-        })}
-        tabindex="0"
-        .label=${`Boilerplate: ${this.config.entity || 'No Entity Defined'}`}
-      ></ha-card>
+      <ha-card>
+        <div class="card-content">
+          <hui-generic-entity-row .hass=${this.hass} .config=${this.config}>
+            <div class="time-input-wrap">
+              <input class="text-content" type="time" step="${step}" value="${stateDisplay}" @change=${this._update}></input>
+            </div>
+          </hui-generic-entity-row>
+        </div>
+      </ha-card>
     `;
+  }
+
+  private _update(event) {
+    const newValue = event.srcElement.value;
+    if (this.hass && this.config && this.config.entity) {
+      this.hass.callService("input_datetime", "set_datetime", { entity_id: this.config.entity, time: newValue })
+    }
   }
 
   private _handleAction(ev: ActionHandlerEvent): void {
@@ -107,7 +122,7 @@ export class BoilerplateCard extends LitElement {
   }
 
   private _showWarning(warning: string): TemplateResult {
-    return html` <hui-warning>${warning}</hui-warning> `;
+    return html`<hui-warning>${warning}</hui-warning>`;
   }
 
   private _showError(error: string): TemplateResult {
@@ -118,7 +133,7 @@ export class BoilerplateCard extends LitElement {
       origConfig: this.config,
     });
 
-    return html` ${errorCard} `;
+    return html`${errorCard}`;
   }
 
   // https://lit.dev/docs/components/styles/
