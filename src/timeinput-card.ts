@@ -11,14 +11,14 @@ import {
   getLovelace,
 } from 'custom-card-helpers'; // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
 
-import type { BoilerplateCardConfig } from './types';
+import type { TimeInputCardConfig } from './types';
 import { actionHandler } from './action-handler-directive';
 import { CARD_VERSION } from './const';
 import { localize } from './localize/localize';
 
 /* eslint no-console: 0 */
 console.info(
-  `%c  BOILERPLATE-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
+  `%c  TimeInput-CARD \n%c  ${localize('common.version')} ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray',
 );
@@ -26,17 +26,16 @@ console.info(
 // This puts your card into the UI card picker dialog
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: 'boilerplate-card',
-  name: 'Boilerplate Card',
-  description: 'A template custom card for you to create something awesome',
+  type: 'timeinput-card',
+  name: 'TimeInput Card',
+  description: 'A time input card using the input type = time',
 });
 
-// TODO Name your custom element
-@customElement('boilerplate-card')
-export class BoilerplateCard extends LitElement {
+@customElement('timeinput-card')
+export class TimeInputCard extends LitElement {
   public static async getConfigElement(): Promise<LovelaceCardEditor> {
     await import('./editor');
-    return document.createElement('boilerplate-card-editor');
+    return document.createElement('timeinput-card-editor');
   }
 
   public static getStubConfig(): Record<string, unknown> {
@@ -47,10 +46,10 @@ export class BoilerplateCard extends LitElement {
   // https://lit.dev/docs/components/properties/
   @property({ attribute: false }) public hass!: HomeAssistant;
 
-  @state() private config!: BoilerplateCardConfig;
+  @state() private config!: TimeInputCardConfig;
 
   // https://lit.dev/docs/components/properties/#accessors-custom
-  public setConfig(config: BoilerplateCardConfig): void {
+  public setConfig(config: TimeInputCardConfig): void {
     // TODO Check for required fields and that they are of the proper format
     if (!config) {
       throw new Error(localize('common.invalid_configuration'));
@@ -93,8 +92,6 @@ export class BoilerplateCard extends LitElement {
     const stateDisplay = this.config.show_seconds ? stateStrFull : stateStrHHMM;
     const step = this.config.show_seconds ? 1 : 60;
 
-    // alert(this.config.show_seconds);
-    // alert(stateDisplay);
     return html`
       <ha-card>
         <div class="card-content">
@@ -112,12 +109,6 @@ export class BoilerplateCard extends LitElement {
     const newValue = event.srcElement.value;
     if (this.hass && this.config && this.config.entity) {
       this.hass.callService("input_datetime", "set_datetime", { entity_id: this.config.entity, time: newValue })
-    }
-  }
-
-  private _handleAction(ev: ActionHandlerEvent): void {
-    if (this.hass && this.config && ev.detail.action) {
-      handleAction(this, this.hass, this.config, ev.detail.action);
     }
   }
 
